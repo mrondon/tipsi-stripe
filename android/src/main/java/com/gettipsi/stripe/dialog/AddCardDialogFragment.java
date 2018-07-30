@@ -26,10 +26,11 @@ import com.gettipsi.stripe.R;
 import com.gettipsi.stripe.StripeModule;
 import com.gettipsi.stripe.util.CardFlipAnimator;
 import com.gettipsi.stripe.util.Utils;
-import com.stripe.android.Stripe;
 import com.stripe.android.TokenCallback;
 import com.stripe.android.model.Card;
 import com.stripe.android.model.Token;
+
+import static com.gettipsi.stripe.Errors.CANCELLED;
 
 
 /**
@@ -108,7 +109,7 @@ public class AddCardDialogFragment extends DialogFragment {
   @Override
   public void onDismiss(DialogInterface dialog) {
     if (!successful && promise != null) {
-      promise.reject(TAG, getString(R.string.gettipsi_user_cancel_dialog));
+      promise.reject(CANCELLED, getString(R.string.gettipsi_user_cancel_dialog));
       promise = null;
     }
     super.onDismiss(dialog);
