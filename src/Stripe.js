@@ -16,7 +16,7 @@ class Stripe {
       options, 'options', 'Stripe.setOptions'
     )
     this.stripeInitialized = true
-    return StripeModule.init(options, errorCodes)
+    return StripeModule.init(options, Stripe.errorCodes)
   }
 
   // @deprecated use deviceSupportsNativePay
@@ -170,7 +170,7 @@ class Stripe {
   }
 
   // eslint-disable-next-line class-methods-use-this
-  get errorCodes() {
+  static get errorCodes() {
     return errorCodes
   }
 }
