@@ -71,10 +71,11 @@ public abstract class PayFlow {
   }
 
   protected String getErrorCode(String key) {
-    ReadableMap errorCodes = getErrorCodes();
-    ArgCheck.isTrue(errorCodes.hasKey(key));
+    return Errors.getErrorCode(getErrorCodes(), key);
+  }
 
-    return errorCodes.getString(key);
+  protected String getErrorDescription(String key) {
+    return Errors.getDescription(getErrorCodes(), key);
   }
 
   abstract void paymentRequestWithAndroidPay(final ReadableMap payParams, final Promise promise);

@@ -27,10 +27,7 @@ import com.stripe.android.model.Source;
 import com.stripe.android.model.SourceParams;
 import com.stripe.android.model.Token;
 
-import static com.gettipsi.stripe.Errors.NO_CURRENT_ACTIVITY_MSG;
-import static com.gettipsi.stripe.Errors.PLATFORM_SPECIFIC;
-import static com.gettipsi.stripe.Errors.REDIRECT_SPECIFIC;
-import static com.gettipsi.stripe.Errors.toErrorCode;
+import static com.gettipsi.stripe.Errors.*;
 import static com.gettipsi.stripe.util.Converters.convertSourceToWritableMap;
 import static com.gettipsi.stripe.util.Converters.convertTokenToWritableMap;
 import static com.gettipsi.stripe.util.Converters.createBankAccount;
@@ -199,7 +196,11 @@ public class StripeModule extends ReactContextBaseJavaModule {
       ArgCheck.nonNull(currentActivity);
       ArgCheck.notEmptyString(mPublicKey);
 
-      final AddCardDialogFragment cardDialog = AddCardDialogFragment.newInstance(mPublicKey);
+      final AddCardDialogFragment cardDialog = AddCardDialogFragment.newInstance(
+        mPublicKey,
+        getErrorCode(mErrorCodes, "cancelled"),
+        getDescription(mErrorCodes, "cancelled")
+      );
       cardDialog.setPromise(promise);
       cardDialog.show(currentActivity.getFragmentManager(), "AddNewCard");
     } catch (Exception e) {
@@ -289,7 +290,10 @@ public class StripeModule extends ReactContextBaseJavaModule {
         if (Source.REDIRECT.equals(source.getFlow())) {
           Activity currentActivity = getCurrentActivity();
           if (currentActivity == null) {
-            promise.reject(PLATFORM_SPECIFIC, NO_CURRENT_ACTIVITY_MSG);
+            promise.reject(
+              getErrorCode(mErrorCodes, "activityUnavailable"),
+              getDescription(mErrorCodes, "activityUnavailable")
+            );
           } else {
             mCreateSourcePromise = promise;
             mCreatedSource = source;
@@ -314,7 +318,10 @@ public class StripeModule extends ReactContextBaseJavaModule {
 
     if (redirectData == null) {
 
-      mCreateSourcePromise.reject(REDIRECT_SPECIFIC, "Cancelled");
+      mCreateSourcePromise.reject(
+        getErrorCode(mErrorCodes, "redirectCancelled"),
+        getDescription(mErrorCodes, "redirectCancelled")
+      );
       mCreatedSource = null;
       mCreateSourcePromise = null;
       return;
@@ -322,7 +329,10 @@ public class StripeModule extends ReactContextBaseJavaModule {
 
     final String clientSecret = redirectData.getQueryParameter("client_secret");
     if (!mCreatedSource.getClientSecret().equals(clientSecret)) {
-      mCreateSourcePromise.reject(REDIRECT_SPECIFIC, "Received redirect uri but there is no source to process");
+      mCreateSourcePromise.reject(
+        getErrorCode(mErrorCodes, "redirectNoSource"),
+        getDescription(mErrorCodes, "redirectNoSource")
+      );
       mCreatedSource = null;
       mCreateSourcePromise = null;
       return;
@@ -330,7 +340,10 @@ public class StripeModule extends ReactContextBaseJavaModule {
 
     final String sourceId = redirectData.getQueryParameter("source");
     if (!mCreatedSource.getId().equals(sourceId)) {
-      mCreateSourcePromise.reject(REDIRECT_SPECIFIC, "Received wrong source id in redirect uri");
+      mCreateSourcePromise.reject(
+        getErrorCode(mErrorCodes, "redirectWrongSourceId"),
+        getDescription(mErrorCodes, "redirectWrongSourceId")
+      );
       mCreatedSource = null;
       mCreateSourcePromise = null;
       return;
@@ -359,12 +372,18 @@ public class StripeModule extends ReactContextBaseJavaModule {
             promise.resolve(convertSourceToWritableMap(source));
             break;
           case Source.CANCELED:
-            promise.reject(REDIRECT_SPECIFIC, "User cancelled source redirect");
+            promise.reject(
+              getErrorCode(mErrorCodes, "redirectCancelled"),
+              getDescription(mErrorCodes, "redirectCancelled")
+            );
             break;
           case Source.PENDING:
           case Source.FAILED:
           case Source.UNKNOWN:
-            promise.reject(REDIRECT_SPECIFIC, "Source redirect failed");
+            promise.reject(
+              getErrorCode(mErrorCodes, "redirectFailed"),
+              getDescription(mErrorCodes, "redirectFailed")
+            );
         }
         return null;
       }

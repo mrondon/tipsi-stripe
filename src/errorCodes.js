@@ -3,11 +3,15 @@ import { Platform } from 'react-native'
 const errorCodes = {
   busy: {
     errorCode: 'busy',
-    description: 'Previous request is not completed'
+    description: 'Previous request is not completed',
   },
   cancelled: {
-		errorCode: 'cancelled',
-		description: 'Canceled by user',
+    errorCode: 'cancelled',
+    description: 'Canceled by user',
+  },
+  purchaseCancelled: {
+    errorCode: 'purchaseCancelled',
+    description: 'Purchase was cancelled',
   },
   sourceStatusCanceled: {
     errorCode: 'sourceStatusCanceled',
@@ -43,14 +47,67 @@ const errorCodes = {
   noAmount: {
     errorCode: 'noAmount',
     description: 'Amount should be greater 0',
-  }
+  },
+  parseResponse: {
+    errorCode: 'parseResponse',
+    description: 'Failed to parse JSON',
+  },
+  activityUnavailable: {
+    errorCode: 'activityUnavailable',
+    description: 'Cannot continue with no current activity',
+  },
+  playServicesUnavailable: {
+    errorCode: 'playServicesUnavailable',
+    description: 'Play services are not available',
+  },
+  redirectCancelled: {
+    errorCode: 'redirectCancelled',
+    description: 'Cancelled',
+  },
+  redirectNoSource: {
+    errorCode: 'redirectNoSource',
+    description: 'Received redirect uri but there is no source to process',
+  },
+  redirectWrongSourceId: {
+    errorCode: 'redirectWrongSourceId',
+    description: 'Received wrong source id in redirect uri',
+  },
+  redirectCancelledByUser: {
+    errorCode: 'redirectCancelledByUser',
+    description: 'User cancelled source redirect',
+  },
+  redirectFailed: {
+    errorCode: 'redirectFailed',
+    description: 'Source redirect failed',
+  },
   // description provided by stripe api
   api: {
     errorCode: 'api',
   },
+  apiConnection: {
+    errorCode: 'apiConnection',
+  },
   redirectSpecific: {
     errorCode: 'redirectSpecific',
-  }
+  },
+  card: {
+    errorCode: 'card',
+  },
+  invalidRequest: {
+    errorCode: 'invalidRequest',
+  },
+  stripe: {
+    errorCode: 'stripe',
+  },
+  rateLimit: {
+    errorCode: 'rateLimit',
+  },
+  authentication: {
+    errorCode: 'authentication',
+  },
+  permission: {
+    errorCode: 'permission',
+  },
 }
 
 export default Object.freeze(errorCodes)

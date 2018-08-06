@@ -30,9 +30,6 @@ import com.stripe.android.TokenCallback;
 import com.stripe.android.model.Card;
 import com.stripe.android.model.Token;
 
-import static com.gettipsi.stripe.Errors.CANCELLED;
-
-
 /**
  * Created by dmitriy on 11/13/16
  */
@@ -40,9 +37,15 @@ import static com.gettipsi.stripe.Errors.CANCELLED;
 public class AddCardDialogFragment extends DialogFragment {
 
   private static final String KEY = "KEY";
+  public static final String ERROR_CODE = "errorCode";
+  public static final String ERROR_DESCRIPTION = "errorDescription";
+
   private static final String TAG = AddCardDialogFragment.class.getSimpleName();
   private static final String CCV_INPUT_CLASS_NAME = SecurityCodeText.class.getSimpleName();
+
   private String PUBLISHABLE_KEY;
+  private String errorCode;
+  private String errorDescription;
 
   private ProgressBar progressBar;
   private CreditCardForm from;
@@ -54,9 +57,16 @@ public class AddCardDialogFragment extends DialogFragment {
   private CardFlipAnimator cardFlipAnimator;
   private Button doneButton;
 
-  public static AddCardDialogFragment newInstance(final String PUBLISHABLE_KEY) {
+  public static AddCardDialogFragment newInstance(
+    final String PUBLISHABLE_KEY,
+    final String errorCode,
+    final String errorDescription
+  ) {
     Bundle args = new Bundle();
     args.putString(KEY, PUBLISHABLE_KEY);
+    args.putString(ERROR_CODE, errorCode);
+    args.putString(ERROR_DESCRIPTION, errorDescription);
+
     AddCardDialogFragment fragment = new AddCardDialogFragment();
     fragment.setArguments(args);
     return fragment;
@@ -70,8 +80,12 @@ public class AddCardDialogFragment extends DialogFragment {
   @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-    if (getArguments() != null)
-      PUBLISHABLE_KEY = getArguments().getString(KEY);
+    Bundle arguments = getArguments();
+    if (arguments != null) {
+      PUBLISHABLE_KEY = arguments.getString(KEY);
+      errorCode = arguments.getString(ERROR_CODE);
+      errorDescription = arguments.getString(ERROR_DESCRIPTION);
+    }
   }
 
   @Override
@@ -109,7 +123,7 @@ public class AddCardDialogFragment extends DialogFragment {
   @Override
   public void onDismiss(DialogInterface dialog) {
     if (!successful && promise != null) {
-      promise.reject(CANCELLED, getString(R.string.gettipsi_user_cancel_dialog));
+      promise.reject(errorCode, errorDescription);
       promise = null;
     }
     super.onDismiss(dialog);

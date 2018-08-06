@@ -30,15 +30,7 @@ import com.stripe.android.model.Token;
 import java.util.Arrays;
 import java.util.Collection;
 
-import static com.gettipsi.stripe.Errors.API;
-import static com.gettipsi.stripe.Errors.CANCELLED;
-import static com.gettipsi.stripe.Errors.FAILED_TO_PARSE_RESPONSE;
-import static com.gettipsi.stripe.Errors.JSON_PARSING_ERROR_MSG;
-import static com.gettipsi.stripe.Errors.NO_CURRENT_ACTIVITY_MSG;
-import static com.gettipsi.stripe.Errors.PLATFORM_SPECIFIC;
-import static com.gettipsi.stripe.Errors.PLAY_SERVICES_ARE_NOT_AVAILABLE_MSG;
-import static com.gettipsi.stripe.Errors.PURCHASE_CANCELLED_MSG;
-import static com.gettipsi.stripe.Errors.STRIPE_SPECIFIC;
+import static com.gettipsi.stripe.Errors.toErrorCode;
 import static com.gettipsi.stripe.util.Converters.convertTokenToWritableMap;
 import static com.gettipsi.stripe.util.Converters.getAllowedShippingCountryCodes;
 import static com.gettipsi.stripe.util.Converters.getBillingAddress;
@@ -89,7 +81,7 @@ public final class GoogleApiPayFlowImpl extends PayFlow {
             boolean result = task.getResult(ApiException.class);
             promise.resolve(result);
           } catch (ApiException exception) {
-            promise.reject(API, String.format("Error, statusCode: %d", exception.getStatusCode()));
+            promise.reject(toErrorCode(exception), exception.getMessage());
           }
         }
       });
@@ -177,7 +169,10 @@ public final class GoogleApiPayFlowImpl extends PayFlow {
 
     Activity activity = activityProvider.call();
     if (activity == null) {
-      promise.reject(PLATFORM_SPECIFIC, NO_CURRENT_ACTIVITY_MSG);
+      promise.reject(
+        getErrorCode("activityUnavailable"),
+        getErrorDescription("activityUnavailable")
+      );
       return;
     }
 
@@ -189,12 +184,18 @@ public final class GoogleApiPayFlowImpl extends PayFlow {
   public void deviceSupportsAndroidPay(boolean isExistingPaymentMethodRequired, @NonNull Promise promise) {
     Activity activity = activityProvider.call();
     if (activity == null) {
-      promise.reject(PLATFORM_SPECIFIC, NO_CURRENT_ACTIVITY_MSG);
+      promise.reject(
+        getErrorCode("activityUnavailable"),
+        getErrorDescription("activityUnavailable")
+      );
       return;
     }
 
     if (!isPlayServicesAvailable(activity)) {
-      promise.reject(PLATFORM_SPECIFIC, PLAY_SERVICES_ARE_NOT_AVAILABLE_MSG);
+      promise.reject(
+        getErrorCode("playServicesUnavailable"),
+        getErrorDescription("playServicesUnavailable")
+      );
       return;
     }
 
@@ -215,7 +216,10 @@ public final class GoogleApiPayFlowImpl extends PayFlow {
             String tokenJson = paymentData.getPaymentMethodToken().getToken();
             Token token = Token.fromString(tokenJson);
             if (token == null) {
-              payPromise.reject(FAILED_TO_PARSE_RESPONSE, JSON_PARSING_ERROR_MSG);
+              payPromise.reject(
+                getErrorCode("parseResponse"),
+                getErrorDescription("parseResponse")
+              );
             } else {
               payPromise.resolve(putExtraToTokenMap(
                 convertTokenToWritableMap(token),
@@ -224,14 +228,20 @@ public final class GoogleApiPayFlowImpl extends PayFlow {
             }
             break;
           case Activity.RESULT_CANCELED:
-            payPromise.reject(CANCELLED, PURCHASE_CANCELLED_MSG);
+            payPromise.reject(
+              getErrorCode("purchaseCancelled"),
+              getErrorDescription("purchaseCancelled")
+            );
             break;
           case AutoResolveHelper.RESULT_ERROR:
             Status status = AutoResolveHelper.getStatusFromIntent(data);
             // Log the status for debugging.
             // Generally, there is no need to show an error to
             // the user as the Google Pay API will do that.
-            payPromise.reject(STRIPE_SPECIFIC, status.getStatusMessage());
+            payPromise.reject(
+              getErrorCode("stripe"),
+              status.getStatusMessage()
+            );
             break;
 
           default:
