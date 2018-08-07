@@ -63,6 +63,10 @@ public class StripeModule extends ReactContextBaseJavaModule {
   private Stripe mStripe;
   private PayFlow mPayFlow;
 
+  @Override
+  public boolean canOverrideExistingModule() {
+      return true;
+  }
 
   private final ActivityEventListener mActivityEventListener = new BaseActivityEventListener() {
 
